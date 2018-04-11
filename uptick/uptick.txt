@@ -1,0 +1,47 @@
+NODE SERVER:
+
+yum install -y epel-release
+yum install -y nodejs git
+mkdir -p /var/www/projects
+yum update -y nss curl libcurl openssl
+cd /var/www/projects/
+git clone https://github.com/mjastad/uptick.git
+chmod -R 755 uptick/
+cd uptick/
+setenforce 0
+systemctl stop firewalld
+# edit config/dbConfig.js to configure 'mssql' backend
+# config/mssqlConfig.js to point to your Xtracted DB ('Uptick','sa','nutanix/4u',1433)
+npm build
+npm install -g forever
+forever server.js
+
+NGINX SERVER:
+
+yum install -y epel-release
+yum install -y nginx git
+yum update -y nss curl libcurl
+git clone https://github.com/mjastad/uptick.git
+cd uptick/
+mv -f * /usr/share/nginx/html/
+chmod -R 755 /usr/share/nginx/html/
+cd /usr/share/nginx/html/
+# edit js/data.js to update node server IP
+setenforce 0
+systemctl stop firewalld
+systemctl enable nginx
+systemctl start nginx
+
+
+IF USING MSSQL SERVER YOU NEED TO UPDATE THE DB 'sa' CREDENTIALS
+Open console for UptickAppDB VM
+Within the VM, download http://10.21.64.50/images/do_not_use/SSMS-Setup-ENU.exe
+Install SQL Server Management Studio
+Open Studio
+Server name - UPTICKAPPDB
+Authentication - Windows Authentication
+Click Connect
+Open Security > Logins
+Right-click 'sa' > Properties
+Update password to 'nutanix/4u'
+Click OK
