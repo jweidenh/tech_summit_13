@@ -17,4 +17,5 @@ yum -y update xfsprogs
 sudo yum -y install docker-ce
 
 sudo systemctl start docker
+docker run --name mynginx1 -p 80:80 -d nginx
 #sudo docker run hello-world
