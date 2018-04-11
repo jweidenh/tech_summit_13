@@ -1,38 +1,48 @@
 NODE SERVER:
-
+# installs node and git
 yum install -y epel-release
 yum install -y nodejs git
 mkdir -p /var/www/projects
+# updates out of date packages for git and npm to work properly
 yum update -y nss curl libcurl openssl
 cd /var/www/projects/
+# clone repo to projects directory
 git clone https://github.com/mjastad/uptick.git
 chmod -R 755 uptick/
 cd uptick/
+# disables SE Linux (only lasts until VM is rebooted)
 setenforce 0
+# stops the firewall (only lasts until VM is rebooted)
 systemctl stop firewalld
-# edit config/dbConfig.js to configure 'mssql' backend
-# config/mssqlConfig.js to point to your Xtracted DB ('Uptick','sa','nutanix/4u',1433)
+# YOU NEED TO - edit config/dbConfig.js to configure 'mssql' backend
+# YOU NEED TO - edit config/mssqlConfig.js to point to your Xtracted DB ('Uptick','sa','nutanix/4u',1433)
+# EXAMPLE sed -i 's/DATABASE_NAME/Uptick/' config/mssqlConfig.js
 npm build
+# forever is a neat tool for easily running a node app as a daemon - otherwise your node app will terminate when Calm ends its script
 npm install -g forever
-forever server.js
-
+forever start server.js
 NGINX SERVER:
-
+# installing nginx and git
 yum install -y epel-release
 yum install -y nginx git
+# updating packages to allow git and npm to function properly
 yum update -y nss curl libcurl
+# clone repo
 git clone https://github.com/mjastad/uptick.git
 cd uptick/
+# moves repo files to default nginx directory (this example doesn't use /var/www/html to serve the files)
 mv -f * /usr/share/nginx/html/
 chmod -R 755 /usr/share/nginx/html/
 cd /usr/share/nginx/html/
-# edit js/data.js to update node server IP
+# YOU NEED TO edit js/data.js to update node server IP
+# HINT - @@{NodeVMServiceName.address}@@ is your friend
+# disables SE Linux (only lasts until VM is rebooted)
 setenforce 0
+# stops the firewall (only lasts until VM is rebooted)
 systemctl stop firewalld
+# starts nginx
 systemctl enable nginx
 systemctl start nginx
-
-
 IF USING MSSQL SERVER YOU NEED TO UPDATE THE DB 'sa' CREDENTIALS
 Open console for UptickAppDB VM
 Within the VM, download http://10.21.64.50/images/do_not_use/SSMS-Setup-ENU.exe
